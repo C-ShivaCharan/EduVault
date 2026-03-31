@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="view-header">
+        <h2>My Saved Bookmarks</h2>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% if not bookmarks %}
+    <div class="empty-state">
+        <p>You haven't bookmarked any papers yet.</p>
+        <a href="{{ url_for('main.research') }}" class="btn-primary">Explore Research</a>
+    </div>
+    {% else %}
+    <div class="bookmarks-grid">
+        {% for bm in bookmarks %}
+        <div class="bookmark-card">
+            <div class="bm-source">{{ bm.source }}</div>
+            <h3><a href="{{ bm.link }}" target="_blank">{{ bm.title }}</a></h3>
+            <p class="bm-date">Saved on: {{ bm.date_saved.strftime('%Y-%m-%d') }}</p>
+            <div class="bm-actions">
+                <a href="{{ bm.link }}" target="_blank" class="btn-sm">Read</a>
+                <form action="{{ url_for('main.remove_bookmark', id=bm.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-sm btn-delete">Remove</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .view-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        color: var(--text-muted);
+    }
+
+    .bookmarks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .bookmark-card {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .bookmark-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+    }
+
+    .bm-source {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        letter-spacing: 1px;
+    }
+
+    .bookmark-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .bookmark-card h3 a {
+        color: var(--text-main);
+        text-decoration: none;
+    }
+
+    .bookmark-card h3 a:hover {
+        color: var(--primary-color);
+    }
+
+    .bm-date {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .bm-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: auto;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .btn-sm:hover {
+        background: var(--primary-color);
+    }
+
+    .btn-delete {
+        background: rgba(255, 50, 50, 0.1);
+        color: #ff6b6b;
+    }
+
+    .btn-delete:hover {
+        background: #ff6b6b;
+        color: white;
+    }
+</style>
+{% endblock %}

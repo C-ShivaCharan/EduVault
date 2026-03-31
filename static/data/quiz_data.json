@@ -1,0 +1,242 @@
+[
+    {
+        "id": 1,
+        "subject": "Python",
+        "question": "What is the correct file extension for Python files?",
+        "options": [
+            ".pyth",
+            ".pt",
+            ".py",
+            ".pe"
+        ],
+        "correct_answer": ".py"
+    },
+    {
+        "id": 2,
+        "subject": "Web Dev",
+        "question": "Which HTML tag is used to define an internal style sheet?",
+        "options": [
+            "<css>",
+            "<script>",
+            "<style>",
+            "<link>"
+        ],
+        "correct_answer": "<style>"
+    },
+    {
+        "id": 3,
+        "subject": "SQL",
+        "question": "Which SQL statement is used to extract data from a database?",
+        "options": [
+            "GET",
+            "OPEN",
+            "EXTRACT",
+            "SELECT"
+        ],
+        "correct_answer": "SELECT"
+    },
+    {
+        "id": 4,
+        "subject": "Networking",
+        "question": "What does HTTP stand for?",
+        "options": [
+            "Hyper Text Transfer Protocol",
+            "Hyperlinks and Text Transfer Protocol",
+            "Home Tool Transfer Protocol",
+            "Hyper Tool Transfer Protocol"
+        ],
+        "correct_answer": "Hyper Text Transfer Protocol"
+    },
+    {
+        "id": 5,
+        "subject": "Python",
+        "question": "How do you start a for loop in Python?",
+        "options": [
+            "for x in y:",
+            "for x in y",
+            "for each x in y:",
+            "for x > y:"
+        ],
+        "correct_answer": "for x in y:"
+    },
+    {
+        "id": 6,
+        "subject": "Web Dev",
+        "question": "Which property is used to change the background color in CSS?",
+        "options": [
+            "bgcolor",
+            "color",
+            "background-color",
+            "bg-color"
+        ],
+        "correct_answer": "background-color"
+    },
+    {
+        "id": 7,
+        "subject": "Computer Fundamentals",
+        "question": "Which component is known as the brain of the computer?",
+        "options": [
+            "RAM",
+            "SSD",
+            "CPU",
+            "Motherboard"
+        ],
+        "correct_answer": "CPU"
+    },
+    {
+        "id": 8,
+        "subject": "SQL",
+        "question": "Which SQL keyword is used to sort the result-set?",
+        "options": [
+            "SORT BY",
+            "ORDER BY",
+            "ARRANGE BY",
+            "GROUP BY"
+        ],
+        "correct_answer": "ORDER BY"
+    },
+    {
+        "id": 9,
+        "subject": "Web Dev",
+        "question": "In HTML, onblur and onfocus are:",
+        "options": [
+            "HTML elements",
+            "Style attributes",
+            "Event attributes",
+            "HTML tags"
+        ],
+        "correct_answer": "Event attributes"
+    },
+    {
+        "id": 10,
+        "subject": "Python",
+        "question": "Which collection is ordered, changeable, and allows duplicate members?",
+        "options": [
+            "Set",
+            "Dictionary",
+            "Tuple",
+            "List"
+        ],
+        "correct_answer": "List"
+    },
+    {
+        "id": 11,
+        "subject": "Networking",
+        "question": "Which protocol is used for sending emails?",
+        "options": [
+            "HTTP",
+            "FTP",
+            "SMTP",
+            "POP3"
+        ],
+        "correct_answer": "SMTP"
+    },
+    {
+        "id": 12,
+        "subject": "SQL",
+        "question": "What does SQL stand for?",
+        "options": [
+            "Structured Question Language",
+            "Structured Query Language",
+            "Strong Question Language",
+            "Structured Query List"
+        ],
+        "correct_answer": "Structured Query Language"
+    },
+    {
+        "id": 13,
+        "subject": "Web Dev",
+        "question": "Which character is used to indicate an end tag in HTML?",
+        "options": [
+            "*",
+            "/",
+            "<",
+            "^"
+        ],
+        "correct_answer": "/"
+    },
+    {
+        "id": 14,
+        "subject": "Python",
+        "question": "Which function is used to output text to the screen in Python?",
+        "options": [
+            "echo()",
+            "print()",
+            "printf()",
+            "console.log()"
+        ],
+        "correct_answer": "print()"
+    },
+    {
+        "id": 15,
+        "subject": "Operating Systems",
+        "question": "What is the full form of OS?",
+        "options": [
+            "Order System",
+            "Operating System",
+            "Open Software",
+            "Optical Sensor"
+        ],
+        "correct_answer": "Operating System"
+    },
+    {
+        "id": 16,
+        "subject": "Web Dev",
+        "question": "How do you select an element with id 'demo' in CSS?",
+        "options": [
+            "#demo",
+            ".demo",
+            "demo",
+            "*demo"
+        ],
+        "correct_answer": "#demo"
+    },
+    {
+        "id": 17,
+        "subject": "DSA",
+        "question": "Which data structure follows LIFO (Last In First Out)?",
+        "options": [
+            "Queue",
+            "Array",
+            "Stack",
+            "Linked List"
+        ],
+        "correct_answer": "Stack"
+    },
+    {
+        "id": 18,
+        "subject": "Python",
+        "question": "Which operator is used for exponentiation in Python?",
+        "options": [
+            "^",
+            "**",
+            "exp",
+            "power"
+        ],
+        "correct_answer": "**"
+    },
+    {
+        "id": 19,
+        "subject": "Web Dev",
+        "question": "Which HTML attribute specifies an alternate text for an image?",
+        "options": [
+            "title",
+            "src",
+            "alt",
+            "longdesc"
+        ],
+        "correct_answer": "alt"
+    },
+    {
+        "id": 20,
+        "subject": "SQL",
+        "question": "Which operator is used to select values within a range?",
+        "options": [
+            "WITHIN",
+            "RANGE",
+            "BETWEEN",
+            "IN"
+        ],
+        "correct_answer": "BETWEEN"
+    }
+]

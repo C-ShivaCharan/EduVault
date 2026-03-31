@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container auth-container">
+    <h2>Login</h2>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('main.login') }}" class="auth-form">
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="Enter your full name">
+        </div>
+        <div class="form-group">
+            <label for="admission_number">Admission Number</label>
+            <input type="text" id="admission_number" name="admission_number" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" required>
+                <span class="toggle-password" onclick="togglePassword()">
+                    <!-- Eye Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </span>
+            </div>
+
+        </div>
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="remember" name="remember" style="width: auto;">
+            <label for="remember" style="margin: 0; cursor: pointer;">Remember Me</label>
+        </div>
+        <button type="submit" class="btn-primary">Login</button>
+        <p class="auth-link"><a href="{{ url_for('main.forgot_password') }}" style="font-size: 0.9rem;">Forgot
+                Password?</a></p>
+        <p class="auth-link">Don't have an account? <a href="{{ url_for('main.register') }}">Register here</a></p>
+    </form>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password svg');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.style.stroke = 'var(--primary-color)';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.style.stroke = 'currentColor';
+            }
+        }
+    </script>
+</div>
+
+<style>
+    .auth-container {
+        max-width: 400px;
+        margin-top: 4rem;
+        padding: 2rem;
+        background: var(--surface);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .auth-container h2 {
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .form-group input {
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        width: 100%;
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-wrapper input {
+        width: 100%;
+        padding-right: 40px;
+        /* Space for icon */
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+    }
+
+    .toggle-password:hover {
+        color: white;
+    }
+
+    .auth-link {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-top: 1rem;
+    }
+
+    .auth-link a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .alert {
+        padding: 0.8rem;
+        background: rgba(255, 107, 107, 0.2);
+        border: 1px solid #ff6b6b;
+        color: #ff6b6b;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

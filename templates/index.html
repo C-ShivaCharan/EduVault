@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Local Overrides to fix layout stack */
+    .nebula-bg {
+        z-index: -1 !important;
+    }
+
+    .hero-split {
+        position: relative;
+        z-index: 2;
+    }
+</style>
+<div class="nebula-bg"></div>
+
+<div class="container">
+    <div class="hero-split">
+        <!-- Left Column: Content -->
+        <div class="hero-text">
+            <h1>Learn Without<br>Limits</h1>
+            <p>
+                Your centralized vault for academic excellence.
+                Access {{ materials_count }} resources, track your progress, and stay ahead of the curve.
+            </p>
+
+            <div class="hero-actions">
+                <button class="btn-glow" onclick="toggleSpotlight()">
+                    <i class="fas fa-search" style="margin-right: 8px;"></i> Explore
+                </button>
+                <a href="{{ url_for('main.materials') }}" class="btn-outline">Browse Files</a>
+            </div>
+
+            <!-- Trending / Quick Access Section -->
+            <label class="trending-label">Quick Access</label>
+            <div class="trending-grid">
+                <a href="{{ url_for('main.quiz') }}" class="mini-card card-quiz">
+                    <i class="fas fa-brain"></i>
+                    <span>Quiz Arena<br><small style="opacity:0.9; color: #ff9f43; font-weight:bold;">Streak: {{
+                            current_user.quiz_streak if current_user.is_authenticated else 0 }} 🔥</small></span>
+                </a>
+
+                <a href="{{ url_for('main.research') }}" class="mini-card card-research">
+                    <i class="fas fa-microscope"></i>
+                    <span>Research<br><small style="opacity:0.7">Hub</small></span>
+                </a>
+
+                <a href="{{ url_for('main.events') }}" class="mini-card card-events">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Events<br><small style="opacity:0.7">{% if upcoming_event %}1 Upcoming{% else %}None{% endif
+                            %}</small></span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Column: Visual -->
+        <div class="hero-visual">
+            <div class="glass-stack">
+                <!-- Layer 1: EduVault Icon (Top) -->
+                <div class="glass-layer layer-1">
+                    <img src="{{ url_for('static', filename='img/hero_icon.png') }}" class="hero-icon-img"
+                        alt="EduVault Logo">
+                </div>
+                <!-- Layer 2: Code Typing (Middle) -->
+                <div class="glass-layer layer-2">
+                    <div class="code-typing">
+                        <span style="color:#ff79c6">def</span> <span style="color:#50fa7b">create</span>():<br>
+                        &nbsp;&nbsp;<span style="color:#bd93f9">return</span> <span
+                            style="color:#f1fa8c">"future"</span>
+                    </div>
+                </div>
+                <!-- Layer 3: Binary Data -->
+                <div class="glass-layer layer-3">
+                    <div class="binary-lines">
+                        01001011 11010010<br>
+                        10110001 01010110<br>
+                        00101101 11100010
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

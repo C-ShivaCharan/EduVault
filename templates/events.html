@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>Hackathons & Tech Events</h2>
+        <p class="subtitle">Discover online challenges and local Bangalore meetups.</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'Online')">Online Hackathons</button>
+        <button class="tab-btn" onclick="openTab(event, 'Offline')">Bangalore & Local Events</button>
+        <button class="tab-btn" onclick="openTab(event, 'News')">Hackathon News (Dev.to)</button>
+    </div>
+
+    <!-- ONLINE SECTION -->
+    <div id="Online" class="tab-content" style="display: block;">
+        <h3>Upcoming Online Hackathons (via Hackalist)</h3>
+        <div class="events-grid">
+            {% if online_events %}
+            {% for event in online_events %}
+            <div class="event-card online-card">
+                <h4>{{ event.title }}</h4>
+                <p class="date">📅 {{ event.startDate }} - {{ event.endDate }}</p>
+                <p class="host">Hosted by: {{ event.host }}</p>
+                <a href="{{ event.url }}" class="btn-register" target="_blank">Register ↗</a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="no-data">No online hackathons found for this month.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- OFFLINE SECTION -->
+    <div id="Offline" class="tab-content" style="display: none;">
+        <div class="offline-header">
+            <h3>Bangalore & Karnataka Events</h3>
+            {% if current_user.role == 'admin' %}
+            <button class="btn-primary" onclick="document.getElementById('addEventModal').style.display='block'">+ Add
+                Custom Event</button>
+            {% endif %}
+        </div>
+
+        <div class="events-grid">
+            <!-- API Events (Bangalore) -->
+            {% if offline_events %}
+            {% for event in offline_events %}
+            <div class="event-card offline-card">
+                <h4>{{ event.title }}</h4>
+                <p class="date">📅 {{ event.startDate }}</p>
+                <p class="desc">Host: {{ event.host }}</p>
+                <a href="{{ event.url }}" class="btn-register" target="_blank">View Event ↗</a>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Local DB Events -->
+            {% if local_events %}
+            {% for event in local_events %}
+            <div class="event-card local-card">
+                <h4>{{ event.name }}</h4>
+                <p class="date">📅 {{ event.date }}</p>
+                <p class="desc">{{ event.description }}</p>
+                <a href="{{ event.registration_link }}" class="btn-register" target="_blank">Register ↗</a>
+                {% if current_user.role == 'admin' %}
+                <form action="{{ url_for('main.delete_event', id=event.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-delete" onclick="return confirm('Delete this event?')">🗑</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        {% if not offline_events and not local_events %}
+        <p class="no-data">No offline events found currently.</p>
+        {% endif %}
+    </div>
+
+    <!-- NEWS/DEV.TO SECTION -->
+    <div id="News" class="tab-content" style="display: none;">
+        <h3>Latest Hackathon Articles (Source: Dev.to API)</h3>
+        <div class="events-grid">
+            {% if devto_events %}
+            {% for article in devto_events %}
+            <div class="event-card news-card">
+                <h4>{{ article.title }}</h4>
+                <p class="date">✍️ {{ article.readable_publish_date }}</p>
+                <p class="host">By {{ article.user.name }}</p>
+                <a href="{{ article.url }}" class="btn-register" target="_blank"
+                    style="background: white; color: black;">Read Article ↗</a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="no-data">No articles found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Modal -->
+<div id="addEventModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('addEventModal').style.display='none'">&times;</span>
+        <h3>Add New Event</h3>
+        <form method="POST" action="{{ url_for('main.events') }}">
+            <div class="form-group">
+                <label>Event Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="text" name="date" placeholder="e.g. 25th Dec, 2025" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Registration Link</label>
+                <input type="url" name="link" required>
+            </div>
+            <button type="submit" class="btn-primary">Add Event</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
+
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .subtitle {
+        color: var(--text-muted);
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--text-color);
+        padding: 0.8rem 1.5rem;
+        cursor: pointer;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+
+    .tab-btn.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .offline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .event-card {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 10px;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+    }
+
+    .badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+        font-weight: bold;
+        border-bottom-left-radius: 10px;
+    }
+
+    .badge.online {
+        background: #6c5ce7;
+        color: white;
+    }
+
+    .badge.offline {
+        background: #e17055;
+        color: white;
+    }
+
+    .badge.local {
+        background: #00b894;
+        color: white;
+    }
+
+    .event-card h4 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #dfe6e9;
+        margin-right: 1.5rem;
+    }
+
+    .date {
+        color: var(--accent);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .host,
+    .desc {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+
+    .btn-register {
+        display: inline-block;
+        text-decoration: none;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .btn-register:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-delete {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        float: right;
+        margin-top: 0.2rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-content {
+        background: #2d3436;
+        margin: 10% auto;
+        padding: 2rem;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        border: 1px solid var(--primary-color);
+    }
+
+    .close {
+        float: right;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #444;
+        color: white;
+        border-radius: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .offline-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}

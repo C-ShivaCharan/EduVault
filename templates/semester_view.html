@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="view-header">
+        <a href="{{ url_for('main.materials') }}" class="back-link">← BCA</a>
+        <h2>{{ semester }} Materials</h2>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Admin Upload Form (Pre-selected Semester) -->
+    {% if current_user.role == 'admin' %}
+    <div class="upload-section">
+        <h3>Upload - {{ semester }}</h3>
+        <form method="POST" action="{{ url_for('main.upload_material') }}" enctype="multipart/form-data"
+            class="upload-form">
+            <input type="hidden" name="semester" value="{{ semester }}">
+            <div class="form-grid">
+                <input type="text" name="title" placeholder="Title" required>
+                <!-- Subject Suggestion List -->
+                <input type="text" name="subject" list="subjects" placeholder="Subject (e.g., C++, Maths)" required>
+                <datalist id="subjects">
+                    {% for sub in subjects.keys() %}
+                    <option value="{{ sub }}">
+                        {% endfor %}
+                </datalist>
+
+                <select name="type" id="typeSelect" required onchange="toggleSubject()">
+                    <option value="" disabled selected>Material Type</option>
+                    <option value="Syllabus">Syllabus</option>
+                    <option value="Notes">Notes</option>
+                    <option value="Textbooks">Textbooks</option>
+                    <option value="ImportantQuestions">Important Questions</option>
+                    <option value="PYQs">PYQs</option>
+                    <option value="QuestionBanks">Question Banks</option>
+                </select>
+                <input type="file" name="file" required>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 1rem; width: 100%;">Upload to {{ semester
+                }}</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <script>
+        function toggleSubject() {
+            const typeSelect = document.getElementById('typeSelect');
+            const subjectInput = document.querySelector('input[name="subject"]');
+
+            if (typeSelect.value === 'Syllabus') {
+                subjectInput.style.display = 'none';
+                subjectInput.required = false;
+                subjectInput.value = 'General';
+            } else {
+                subjectInput.style.display = 'block';
+                subjectInput.required = true;
+                if (subjectInput.value === 'General') subjectInput.value = '';
+            }
+        }
+    </script>
+
+    <!-- Syllabus Section -->
+    <div class="syllabus-section">
+        <h3>📄 Syllabus</h3>
+        <div class="file-list">
+            {% if syllabus_files %}
+            <div class="syllabus-grid">
+                {% for m in syllabus_files %}
+                {% include 'partials/file_card.html' %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-msg">No syllabus uploaded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Materials Grouped by Subject -->
+    <div class="subjects-container">
+        {% if not subjects %}
+        <p class="no-data">No materials uploaded for {{ semester }} yet.</p>
+        {% else %}
+        {% for subject, types in subjects.items() %}
+        <div class="subject-block">
+            <div class="subject-header">
+                <h3 class="subject-title">{{ subject }}</h3>
+            </div>
+            <div class="types-grid">
+                <!-- Textbooks -->
+                <div class="type-column">
+                    <h4>📚 Textbooks</h4>
+                    <div class="file-list">
+                        {% for m in types.get('Textbooks', []) %}
+                        {% include 'partials/file_card.html' %}
+                        {% else %}
+                        <span class="empty-msg">No textbooks</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Important Notes (Containing Notes & Important Questions) -->
+                <div class="type-column">
+                    <h4>📝 Important Notes</h4>
+
+                    <div class="section-divider">Notes</div>
+                    <div class="file-list">
+                        {% for m in types.get('Notes', []) %}
+                        {% include 'partials/file_card.html' %}
+                        {% else %}
+                        <span class="empty-msg">No notes</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="section-divider" style="margin-top: 1rem;">Important Questions</div>
+                    <div class="file-list">
+                        {% for m in types.get('ImportantQuestions', []) %}
+                        {% include 'partials/file_card.html' %}
+                        {% else %}
+                        <span class="empty-msg">No important questions</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- PYQs / QB -->
+                <div class="type-column">
+                    <h4>❓ PYQs & Q-Banks</h4>
+                    <div class="file-list">
+                        {% for m in types.get('PYQs', []) %}
+                        {% include 'partials/file_card.html' %}
+                        {% endfor %}
+                        {% for m in types.get('QuestionBanks', []) %}
+                        {% include 'partials/file_card.html' %}
+                        {% endfor %}
+                        {% if not types.get('PYQs') and not types.get('QuestionBanks') %}
+                        <span class="empty-msg">No questions</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .view-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .back-link {
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        background: var(--surface);
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .back-link:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    /* Premium Subject Card */
+    .subject-block {
+        background: rgba(30, 30, 36, 0.6);
+        border-radius: 16px;
+        padding: 0;
+        margin-bottom: 2.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .subject-header {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 1.2rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .subject-title {
+        font-size: 1.4rem;
+        color: white;
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .subject-title::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 24px;
+        background: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 0;
+    }
+
+    .type-column {
+        padding: 1.5rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .type-column:last-child {
+        border-right: none;
+    }
+
+    .type-column h4 {
+        color: var(--text-muted);
+        margin-bottom: 1.2rem;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .file-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .empty-msg {
+        color: rgba(255, 255, 255, 0.2);
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+
+    .section-divider {
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* Upload Form Styles */
+    .upload-section {
+        background: linear-gradient(145deg, rgba(108, 92, 231, 0.1) 0%, rgba(30, 30, 36, 0.4) 100%);
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .upload-section h3 {
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    input,
+    select {
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.3);
+        color: white;
+        transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus {
+        border-color: var(--primary-color);
+        outline: none;
+    }
+
+    @media (max-width: 768px) {
+        .type-column {
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    }
+</style>
+{% endblock %}

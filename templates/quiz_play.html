@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Active Quiz</h2>
+    <div class="progress-info">Question 1 of 25</div>
+
+    <form method="POST" action="{{ url_for('main.submit_quiz') }}" class="quiz-form">
+        {% for q in questions %}
+        <div class="question-block">
+            <p class="q-text"><span class="q-num">{{ loop.index }}.</span> {{ q.question }}</p>
+            <div class="options-list">
+                {% for opt in q.options %}
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="{{ opt }}" required>
+                    <span class="opt-text">{{ opt }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="submit-section">
+            <button type="submit" class="btn-submit" onclick="return confirm('Submit Quiz?')">Submit Answers</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .question-block {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .q-text {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+
+    .q-num {
+        color: var(--accent);
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .option-label {
+        display: flex;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .option-label:hover {
+        background: rgba(108, 92, 231, 0.1);
+        border-color: var(--primary-color);
+    }
+
+    .option-label input {
+        margin-right: 1rem;
+        accent-color: var(--primary-color);
+    }
+
+    .submit-section {
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .btn-submit {
+        background: var(--primary-color);
+        color: white;
+        padding: 1rem 3rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .btn-submit:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}

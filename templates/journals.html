@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Open Access Journals</h2>
+    <p class="subtitle">Search peer-reviewed articles from the Directory of Open Access Journals (DOAJ)</p>
+
+    <div class="search-box">
+        <form method="GET" action="{{ url_for('main.journals') }}" class="search-form">
+            <input type="text" name="query" placeholder="Search topics (e.g., Artificial Intelligence)..."
+                value="{{ query if query else '' }}" required>
+            <button type="submit" class="btn-primary">Search</button>
+        </form>
+    </div>
+
+    {% if query %}
+    <h3 class="results-heading">Results for "{{ query }}"</h3>
+    <div class="results-grid">
+        {% for paper in results %}
+        <div class="result-card">
+            <h3>{{ paper.title }}</h3>
+            <p class="journal-name"><strong>Journal:</strong> {{ paper.journal }}</p>
+            <p class="abstract">{{ paper.abstract[:200] }}...</p>
+            <a href="{{ paper.link }}" target="_blank" class="btn-read">Read Full Article</a>
+        </div>
+        {% else %}
+        <p class="no-data">No articles found. Try a different keyword.</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .subtitle {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .search-box {
+        max-width: 600px;
+        margin: 0 auto 3rem auto;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .search-form input {
+        flex: 1;
+        padding: 1rem;
+        border-radius: 50px;
+        border: none;
+        font-size: 1rem;
+        background: white;
+        color: black;
+    }
+
+    .results-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .result-card {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+    }
+
+    .source-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    .source-badge.doaj {
+        background: #f39c12;
+        color: white;
+    }
+
+    .journal-name {
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .abstract {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .btn-read {
+        display: inline-block;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .btn-read:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}

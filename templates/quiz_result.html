@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="result-header">
+        <h2>Quiz Completed!</h2>
+        <div class="score-circle">
+            <span class="score-value">{{ score }}</span>
+            <span class="score-total">/ {{ total }}</span>
+        </div>
+        <p class="percentage">{{ (score / total * 100)|round(1) }}%</p>
+
+        <div class="actions">
+            <a href="{{ url_for('main.quiz') }}" class="btn-secondary">Back to Dashboard</a>
+            <a href="{{ url_for('main.start_quiz') }}" class="btn-primary">Try Again</a>
+        </div>
+    </div>
+
+    <h3>Detailed Review</h3>
+    <div class="review-grid">
+        {% for item in details %}
+        <div class="review-card {{ 'correct' if item.is_correct else 'wrong' }}">
+            <div class="status-icon">{{ '✓' if item.is_correct else '✗' }}</div>
+            <h4>Question {{ item.id }}</h4>
+            <!-- Actual text not stored in session to save space, relies on ID context -->
+
+            <div class="answer-row">
+                <span class="label">Your Answer:</span>
+                <span class="value {{ 'correct-text' if item.is_correct else 'wrong-text' }}">{{ item.user_ans }}</span>
+            </div>
+
+            {% if not item.is_correct %}
+            <div class="answer-row">
+                <span class="label">Correct Answer:</span>
+                <span class="value correct-text">{{ item.correct_ans }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .result-header {
+        text-align: center;
+        background: var(--surface);
+        padding: 3rem;
+        border-radius: 15px;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .score-circle {
+        font-size: 4rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin: 1rem 0;
+    }
+
+    .score-total {
+        font-size: 2rem;
+        color: var(--text-muted);
+    }
+
+    .percentage {
+        font-size: 1.5rem;
+        color: #fff;
+        margin-bottom: 2rem;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+    }
+
+    .review-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .review-card {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 10px;
+        position: relative;
+        border-left: 5px solid transparent;
+        overflow: hidden;
+    }
+
+    .review-card.correct {
+        border-left-color: #2ecc71;
+    }
+
+    .review-card.wrong {
+        border-left-color: #e74c3c;
+    }
+
+    .status-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .review-card.correct .status-icon {
+        color: #2ecc71;
+    }
+
+    .review-card.wrong .status-icon {
+        color: #e74c3c;
+    }
+
+    .answer-row {
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .label {
+        color: var(--text-muted);
+        margin-right: 0.5rem;
+    }
+
+    .correct-text {
+        color: #2ecc71;
+        font-weight: bold;
+    }
+
+    .wrong-text {
+        color: #e74c3c;
+        text-decoration: line-through;
+    }
+</style>
+{% endblock %}

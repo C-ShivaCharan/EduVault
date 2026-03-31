@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Research Papers & Journals</h2>
+    <p class="subtitle">Search peer-reviewed papers from arXiv, Semantic Scholar, and Crossref</p>
+
+    <div class="search-section">
+        <form method="GET" action="{{ url_for('main.research') }}" class="search-form">
+            <input type="text" name="query" placeholder="Enter keywords (e.g., Quantum Computing, ML)..."
+                value="{{ query if query else '' }}" required>
+            <button type="submit" class="btn-primary">Search</button>
+        </form>
+    </div>
+
+    {% if query %}
+    <div class="results-info">
+        {% if results %}
+        <p>Found {{ results|length }} results for "{{ query }}"</p>
+        {% else %}
+        <p>No results found for "{{ query }}"</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="results-grid">
+        {% for paper in results %}
+        <div class="paper-card">
+            <h3>{{ paper.title }}</h3>
+            <p class="authors">By {{ paper.authors }}</p>
+            <p class="abstract">{{ paper.abstract[:250] }}...</p>
+            <div class="actions">
+                <a href="{{ paper.link }}" class="btn-read" target="_blank">View Paper ↗</a>
+
+                <form action="{{ url_for('main.add_bookmark') }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="title" value="{{ paper.title }}">
+                    <input type="hidden" name="link" value="{{ paper.link }}">
+                    <input type="hidden" name="source" value="{{ paper.source }}">
+                    <button type="submit" class="btn-bookmark" title="Bookmark this paper">
+                        🔖
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .btn-bookmark {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.5rem 0.8rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s;
+    }
+
+    .btn-bookmark:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+        border-color: var(--primary-color);
+    }
+
+    .subtitle {
+        color: var(--text-muted);
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .search-section {
+        margin-bottom: 3rem;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-form input {
+        flex: 1;
+        padding: 1rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--surface);
+        color: white;
+    }
+
+    .results-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .paper-card {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+        transition: transform 0.2s;
+    }
+
+    .paper-card:hover {
+        transform: translateX(5px);
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .paper-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: #dfe6e9;
+        margin-right: 2rem;
+        /* space for badge */
+    }
+
+    .authors {
+        font-size: 0.9rem;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        font-style: italic;
+    }
+
+    .abstract {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+
+    .source-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(108, 92, 231, 0.2);
+        color: var(--primary-color);
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    .source-badge.arxiv {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+
+    .source-badge.semantic-scholar {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+
+    .source-badge.crossref {
+        background: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+
+    .btn-read {
+        display: inline-block;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--primary-color);
+        border-radius: 5px;
+        transition: all 0.2s;
+    }
+
+    .btn-read:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+</style>
+{% endblock %}
