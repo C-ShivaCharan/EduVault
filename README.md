@@ -15,7 +15,7 @@ A full-stack academic platform built with Python and Flask that centralizes lear
 |------------|-----------------------------------|
 | Backend    | Python, Flask                     |
 | Frontend   | HTML, CSS, JavaScript             |
-| Database   | SQL                               |
+| Database   | SQLite                            |
 
 ## Getting Started
 
