@@ -2,6 +2,10 @@
 
 A full-stack academic platform built with Python and Flask that centralizes learning resources for students.
 
+## Preview
+
+![EduVault Preview](image.png)
+
 ## Features
 
 - 📚 Access to research papers and e-books in one place
