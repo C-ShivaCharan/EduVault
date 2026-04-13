@@ -2,8 +2,12 @@
 
 {% block content %}
 <div class="container">
-    <h2>Research Papers & Journals</h2>
-    <p class="subtitle">Search peer-reviewed papers from arXiv, Semantic Scholar, and Crossref</p>
+    <div class="subpage-hero hero-bg-research">
+        <div class="subpage-hero-content">
+            <h2>Research Papers & Journals</h2>
+            <p class="subtitle">Search peer-reviewed papers from arXiv, Semantic Scholar, and Crossref</p>
+        </div>
+    </div>
 
     <div class="search-section">
         <form method="GET" action="{{ url_for('main.research') }}" class="search-form">
@@ -11,9 +15,18 @@
                 value="{{ query if query else '' }}" required>
             <button type="submit" class="btn-primary">Search</button>
         </form>
+        <div class="quick-topics">
+            <span>Trending:</span>
+            <a href="{{ url_for('main.research', query='Quantum Computing') }}" class="topic-tag">🌌 Quantum Computing</a>
+            <a href="{{ url_for('main.research', query='Biotechnology') }}" class="topic-tag">🧬 Biotechnology</a>
+            <a href="{{ url_for('main.research', query='Cybersecurity') }}" class="topic-tag">🔐 Cybersecurity</a>
+            <a href="{{ url_for('main.research', query='Artificial Intelligence') }}" class="topic-tag">🤖 AI & ML</a>
+        </div>
     </div>
 
-    {% if query %}
+    {% if is_default %}
+    <h3 class="results-heading"><i class="fas fa-fire" style="color: #ff7675;"></i> Trending Research Right Now</h3>
+    {% elif query %}
     <div class="results-info">
         {% if results %}
         <p>Found {{ results|length }} results for "{{ query }}"</p>
@@ -31,6 +44,9 @@
             <p class="abstract">{{ paper.abstract[:250] }}...</p>
             <div class="actions">
                 <a href="{{ paper.link }}" class="btn-read" target="_blank">View Paper ↗</a>
+                {% if paper.pdf_link %}
+                <a href="{{ paper.pdf_link }}" class="btn-download" target="_blank" style="padding: 0.5rem 1rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; color: white; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">PDF ⬇</a>
+                {% endif %}
 
                 <form action="{{ url_for('main.add_bookmark') }}" method="POST" style="display:inline;">
                     <input type="hidden" name="title" value="{{ paper.title }}">

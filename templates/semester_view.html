@@ -17,34 +17,46 @@
 
     <!-- Admin Upload Form (Pre-selected Semester) -->
     {% if current_user.role == 'admin' %}
-    <div class="upload-section">
-        <h3>Upload - {{ semester }}</h3>
-        <form method="POST" action="{{ url_for('main.upload_material') }}" enctype="multipart/form-data"
-            class="upload-form">
+    <div class="upload-section enhanced-upload">
+        <h3><i class="fas fa-cloud-upload-alt"></i> Upload to {{ semester }}</h3>
+        <form method="POST" action="{{ url_for('main.upload_material') }}" enctype="multipart/form-data" class="upload-form">
             <input type="hidden" name="semester" value="{{ semester }}">
-            <div class="form-grid">
-                <input type="text" name="title" placeholder="Title" required>
-                <!-- Subject Suggestion List -->
-                <input type="text" name="subject" list="subjects" placeholder="Subject (e.g., C++, Maths)" required>
-                <datalist id="subjects">
-                    {% for sub in subjects.keys() %}
-                    <option value="{{ sub }}">
-                        {% endfor %}
-                </datalist>
+            
+            <div class="upload-grid">
+                <!-- Drop Zone -->
+                <div class="drop-zone-container">
+                    <div class="drop-zone" id="dropZone">
+                        <i class="fas fa-file-upload drop-icon"></i>
+                        <span class="drop-text">Drag & Drop file here or <span class="browse-link" onclick="document.getElementById('fileInput').click()">Browse</span></span>
+                        <input type="file" name="file" id="fileInput" class="hidden-file-input" required>
+                    </div>
+                </div>
 
-                <select name="type" id="typeSelect" required onchange="toggleSubject()">
-                    <option value="" disabled selected>Material Type</option>
-                    <option value="Syllabus">Syllabus</option>
-                    <option value="Notes">Notes</option>
-                    <option value="Textbooks">Textbooks</option>
-                    <option value="ImportantQuestions">Important Questions</option>
-                    <option value="PYQs">PYQs</option>
-                    <option value="QuestionBanks">Question Banks</option>
-                </select>
-                <input type="file" name="file" required>
+                <!-- Metadata -->
+                <div class="metadata-container">
+                    <input type="text" name="title" placeholder="Title" required class="glass-input">
+                    <input type="text" name="subject" list="subjects" placeholder="Subject (e.g., C++, Maths)" required class="glass-input">
+                    <datalist id="subjects">
+                        {% for sub in subjects.keys() %}
+                        <option value="{{ sub }}">
+                        {% endfor %}
+                    </datalist>
+
+                    <select name="type" id="typeSelect" required onchange="toggleSubject()" class="glass-input">
+                        <option value="" disabled selected>Material Type</option>
+                        <option value="Syllabus">Syllabus</option>
+                        <option value="Notes">Notes</option>
+                        <option value="Textbooks">Textbooks</option>
+                        <option value="ImportantQuestions">Important Questions</option>
+                        <option value="PYQs">PYQs</option>
+                        <option value="QuestionBanks">Question Banks</option>
+                    </select>
+
+                    <button type="submit" class="btn-glow upload-btn">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </div>
             </div>
-            <button type="submit" class="btn-primary" style="margin-top: 1rem; width: 100%;">Upload to {{ semester
-                }}</button>
         </form>
     </div>
     {% endif %}
@@ -64,6 +76,49 @@
                 if (subjectInput.value === 'General') subjectInput.value = '';
             }
         }
+
+        // Drag and Drop JavaScript
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const dropText = document.querySelector('.drop-text');
+
+            if (dropZone && fileInput) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, () => dropZone.classList.add('over'), false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, () => dropZone.classList.remove('over'), false);
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if(files.length) {
+                        fileInput.files = files;
+                        updateDropZone(files[0]);
+                    }
+                }, false);
+
+                fileInput.addEventListener('change', (e) => {
+                    if(fileInput.files.length) {
+                        updateDropZone(fileInput.files[0]);
+                    }
+                });
+
+                function updateDropZone(file) {
+                    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+                    dropText.innerHTML = `<i class="fas fa-check-circle" style="color:#50fa7b; margin-right:5px;"></i> ${file.name} <br> <span style="font-size:0.8rem; color:#888;">(${sizeMB} MB)</span>`;
+                    dropZone.classList.add('has-file');
+                }
+            }
+        });
     </script>
 
     <!-- Syllabus Section -->
@@ -259,40 +314,125 @@
         text-transform: uppercase;
     }
 
-    /* Upload Form Styles */
-    .upload-section {
-        background: linear-gradient(145deg, rgba(108, 92, 231, 0.1) 0%, rgba(30, 30, 36, 0.4) 100%);
-        border: 1px solid rgba(108, 92, 231, 0.3);
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
+    /* Enhanced Upload Form Styles */
+    .enhanced-upload {
+        background: rgba(30, 27, 46, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(189, 147, 249, 0.2);
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
-
-    .upload-section h3 {
-        margin-bottom: 1rem;
-        color: var(--primary-color);
-    }
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    input,
-    select {
-        padding: 0.8rem;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(0, 0, 0, 0.3);
+    
+    .enhanced-upload h3 {
         color: white;
-        transition: border-color 0.2s;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .enhanced-upload h3 i {
+        color: var(--primary-color);
+        font-size: 1.8rem;
     }
 
-    input:focus,
-    select:focus {
-        border-color: var(--primary-color);
-        outline: none;
+    .upload-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+        height: 100%;
+        min-height: 200px;
+        border: 2px dashed rgba(189, 147, 249, 0.5);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+        background: rgba(189, 147, 249, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .drop-zone.over {
+        background: rgba(189, 147, 249, 0.2);
+        border-color: #ff79c6;
+        transform: scale(1.02);
+    }
+
+    .drop-zone.has-file {
+        border-style: solid;
+        border-color: #50fa7b;
+        background: rgba(80, 250, 123, 0.1);
+    }
+
+    .drop-icon {
+        font-size: 3.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+
+    .drop-text {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
+    
+    .drop-text .browse-link {
+        color: #ff79c6;
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: bold;
+    }
+
+    .hidden-file-input {
+        opacity: 0;
+        position: absolute;
+        width: 1%;
+        height: 1%;
+        overflow: hidden;
+        z-index: -1;
+    }
+
+    /* Metadata Container */
+    .metadata-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        justify-content: space-between;
+    }
+
+    .glass-input {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px;
+        padding: 1rem;
+        color: white;
+    }
+
+    .glass-input:focus {
+        border-color: #ff79c6 !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .upload-btn {
+        margin-top: auto; /* Push to bottom if gap allows */
+        padding: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        cursor: pointer;
     }
 
     @media (max-width: 768px) {

@@ -28,11 +28,17 @@ def index():
         if best_quiz:
             high_score = best_quiz.score
 
+    # Fetch recent updates for the Notifications Feed
+    recent_materials = Material.query.order_by(Material.date_uploaded.desc()).limit(3).all()
+    recent_events = Event.query.order_by(Event.id.desc()).limit(2).all()
+
     return render_template('index.html', 
                            recent_quiz=recent_quiz, 
                            materials_count=materials_count, 
                            upcoming_event=upcoming_event,
-                           high_score=high_score)
+                           high_score=high_score,
+                           recent_materials=recent_materials,
+                           recent_events=recent_events)
 
 @main_bp.route('/sw.js')
 def service_worker():
@@ -51,22 +57,25 @@ def register():
         if User.query.filter_by(admission_number=admission_number).first():
             flash('Admission Number already registered')
         else:
-            security_question = request.form.get('security_question')
-            security_answer = request.form.get('security_answer')
-            
             user = User(admission_number=admission_number, name=name, role='student')
             user.set_password(password)
             
-            if security_question and security_answer:
-                user.security_question = security_question
-                user.set_security_answer(security_answer)
-                
+            codes = user.generate_recovery_codes()
+            
             db.session.add(user)
             db.session.commit()
-            flash('Registration successful! Please login.')
-            return redirect(url_for('main.login'))
+            
+            session['temp_recovery_codes'] = codes
+            return redirect(url_for('main.save_codes', user_id=user.id))
             
     return render_template('register.html')
+
+@main_bp.route('/save_codes/<int:user_id>')
+def save_codes(user_id):
+    codes = session.pop('temp_recovery_codes', None)
+    if not codes:
+        return redirect(url_for('main.login'))
+    return render_template('save_codes.html', codes=codes)
 
 @main_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -106,11 +115,10 @@ def forgot_password():
         user = User.query.filter_by(admission_number=admission_number).first()
         
         if user:
-            if user.security_question and user.security_answer_hash:
-                # User has security setup, proceed to Step 2
-                return render_template('reset_security.html', question=user.security_question, user_id=user.id)
+            if user.recovery_codes:
+                return render_template('reset_security.html', user_id=user.id)
             else:
-                flash('This account does not have a security question set up. Contact Admin.')
+                flash('This account does not have recovery codes set up. Contact Admin.')
         else:
             flash('Admission Number not found.')
             
@@ -120,17 +128,17 @@ def forgot_password():
 def reset_security(user_id):
     user = User.query.get_or_404(user_id)
     
-    answer = request.form.get('security_answer')
+    code = request.form.get('recovery_code')
     new_password = request.form.get('new_password')
     
-    if user.check_security_answer(answer):
+    if user.validate_and_consume_code(code):
         user.set_password(new_password)
         db.session.commit()
-        flash('Password reset successful! Please login.')
+        flash('Password reset successful! Your Recovery Code was consumed.')
         return redirect(url_for('main.login'))
     else:
-        flash('Incorrect Security Answer.')
-        return render_template('reset_security.html', question=user.security_question, user_id=user.id)
+        flash('Invalid Recovery Code.')
+        return render_template('reset_security.html', user_id=user.id)
 
 
 # --- Admin Routes ---
@@ -332,6 +340,12 @@ def remove_bookmark(id):
 @login_required
 def research():
     query = request.args.get('query')
+    is_default = False
+    
+    if not query:
+        query = 'Machine Learning'
+        is_default = True
+        
     results = []
     
     if query:
@@ -355,6 +369,7 @@ def research():
                     'title': title,
                     'abstract': summary,
                     'link': link,
+                    'pdf_link': link.replace('/abs/', '/pdf/') + '.pdf' if '/abs/' in link else None,
                     'authors': ', '.join(authors),
                     'source': 'arXiv'
                 })
@@ -370,12 +385,14 @@ def research():
                 for paper in data.get('data', []):
                     authors = [a['name'] for a in paper.get('authors', [])]
                     link = paper.get('url') or (paper.get('openAccessPdf') or {}).get('url')
+                    pdf_link = (paper.get('openAccessPdf') or {}).get('url')
                     
                     if link: # Only add if link exists
                         results.append({
                             'title': paper.get('title'),
                             'abstract': paper.get('abstract') or "No abstract available.",
                             'link': link,
+                            'pdf_link': pdf_link,
                             'authors': ', '.join(authors),
                             'source': 'Semantic Scholar'
                         })
@@ -392,6 +409,13 @@ def research():
                     title = item.get('title', ['No Title'])[0]
                     # Abstract is rare in Crossref public result list, usually just metadata
                     link = item.get('URL')
+                    
+                    pdf_link = None
+                    for l in item.get('link', []):
+                        if l.get('content-type') == 'application/pdf':
+                            pdf_link = l.get('URL')
+                            break
+                            
                     authors_list = item.get('author', [])
                     authors = [f"{a.get('given','')} {a.get('family','')}" for a in authors_list]
                     
@@ -399,18 +423,25 @@ def research():
                         'title': title,
                         'abstract': "Click link to view full details.",
                         'link': link,
+                        'pdf_link': pdf_link,
                         'authors': ', '.join(authors),
                         'source': 'Crossref'
                     })
         except Exception as e:
             print(f"Crossref Error: {e}")
             
-    return render_template('research.html', results=results, query=query)
+    return render_template('research.html', results=results, query=query if not is_default else '', is_default=is_default)
 
 @main_bp.route('/ebooks')
 @login_required
 def ebooks():
     query = request.args.get('query')
+    is_default = False
+    
+    if not query:
+        query = 'Python Programming'
+        is_default = True
+        
     results = []
     
     if query:
@@ -431,7 +462,8 @@ def ebooks():
                 
                 if ia_id:
                     read_link = f"https://archive.org/details/{ia_id}/mode/2up"
-                    download_link = f"https://archive.org/download/{ia_id}/{ia_id}.pdf"
+                    # Archive.org often returns 401 for direct PDF downloads due to loan restrictions.
+                    download_link = None 
                 else:
                     # Fallback to Open Library reader
                     read_link = f"https://openlibrary.org{doc.get('key')}"
@@ -475,12 +507,18 @@ def ebooks():
         except Exception as e:
             print(f"Google Books Error: {e}")
             
-    return render_template('ebooks.html', results=results, query=query)
+    return render_template('ebooks.html', results=results, query=query if not is_default else '', is_default=is_default)
 
 @main_bp.route('/journals')
 @login_required
 def journals():
     query = request.args.get('query')
+    is_default = False
+    
+    if not query:
+        query = 'Computer Science'
+        is_default = True
+        
     results = []
     
     if query:
@@ -495,17 +533,26 @@ def journals():
                     bibjson = item.get('bibjson', {})
                     journal = bibjson.get('journal', {})
                     
+                    pdf_link = None
+                    main_link = (bibjson.get('link') or [{}])[0].get('url')
+                    
+                    for l in bibjson.get('link', []):
+                        if l.get('type') == 'fulltext' and l.get('url', '').endswith('.pdf'):
+                            pdf_link = l.get('url')
+                            break
+                    
                     results.append({
                         'title': bibjson.get('title'),
                         'journal': journal.get('title'),
                         'abstract': bibjson.get('abstract') or "No abstract.",
-                        'link': (bibjson.get('link') or [{}])[0].get('url'),
+                        'link': main_link,
+                        'pdf_link': pdf_link,
                         'source': 'DOAJ'
                     })
         except Exception as e:
             print(f"DOAJ Error: {e}")
             
-    return render_template('journals.html', results=results, query=query)
+    return render_template('journals.html', results=results, query=query if not is_default else '', is_default=is_default)
 
 # --- Events ---
 @main_bp.route('/events', methods=['GET', 'POST'])
@@ -751,8 +798,6 @@ def spotlight_search():
     if not query:
         return jsonify([])
         
-    results = []
-    
     # 1. Navigation (Static)
     nav_items = [
         {'title': 'Dashboard', 'url': url_for('main.index'), 'type': 'Page'},
@@ -809,7 +854,70 @@ def spotlight_search():
     return jsonify(results)
 
 
+@main_bp.route('/api/wiki')
+def wiki_search():
+    query = request.args.get('q', '').lower()
+    if not query:
+        return jsonify([])
+        
+    results = []
+    try:
+        import requests
+        from urllib.parse import quote
+        wiki_url = f"https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch={quote(query)}&gsrlimit=1&prop=extracts|info&inprop=url&exintro=1&explaintext=1&format=json"
+        headers = {'User-Agent': 'EduVault/1.0 (Educational Project)'}
+        resp = requests.get(wiki_url, headers=headers, timeout=2)
+        if resp.status_code == 200:
+            data = resp.json()
+            pages = data.get('query', {}).get('pages', {})
+            if pages:
+                # Get the first page object from the pages dictionary
+                page = list(pages.values())[0]
+                results.append({
+                    'title': page.get('title', 'Wikipedia Topic'),
+                    'type': 'Wikipedia',
+                    'extract': page.get('extract', 'No description available.'),
+                    'url': page.get('fullurl', '#')
+                })
+    except Exception as e:
+        print(f"Wikipedia API Error: {e}")
+        
+    return jsonify(results)
 
 
-
+@main_bp.route('/projects')
+@login_required
+def projects():
+    query = request.args.get('query')
+    is_default = False
+    
+    if not query:
+        query = "Python Beginner"
+        is_default = True
+        
+    results = []
+    
+    if query:
+        import requests
+        from urllib.parse import quote
+        
+        try:
+            url = f"https://api.github.com/search/repositories?q={quote(query)}&sort=stars&order=desc&per_page=12"
+            resp = requests.get(url, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                for repo in data.get('items', []):
+                    results.append({
+                        'title': repo.get('full_name'),
+                        'description': repo.get('description'),
+                        'stars': repo.get('stargazers_count'),
+                        'language': repo.get('language'),
+                        'url': repo.get('html_url'),
+                        'issues': repo.get('open_issues_count'),
+                        'source': 'GitHub'
+                    })
+        except Exception as e:
+            print(f"GitHub API Error: {e}")
+            
+    return render_template('projects.html', results=results, query=query if not is_default else '', is_default=is_default)
 

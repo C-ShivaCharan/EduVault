@@ -17,7 +17,7 @@
 <div class="container">
     <div class="hero-split">
         <!-- Left Column: Content -->
-        <div class="hero-text">
+        <div class="hero-text reveal-stagger">
             <h1>Learn Without<br>Limits</h1>
             <p>
                 Your centralized vault for academic excellence.
@@ -31,25 +31,56 @@
                 <a href="{{ url_for('main.materials') }}" class="btn-outline">Browse Files</a>
             </div>
 
-            <!-- Trending / Quick Access Section -->
-            <label class="trending-label">Quick Access</label>
-            <div class="trending-grid">
-                <a href="{{ url_for('main.quiz') }}" class="mini-card card-quiz">
-                    <i class="fas fa-brain"></i>
-                    <span>Quiz Arena<br><small style="opacity:0.9; color: #ff9f43; font-weight:bold;">Streak: {{
-                            current_user.quiz_streak if current_user.is_authenticated else 0 }} 🔥</small></span>
-                </a>
+            <!-- Custom Terminal Search & Tags Widget -->
+            <div class="hero-widget-container">
+                <div class="search-tabs" style="display: flex; gap: 0.5rem; margin-bottom: -1px; position: relative; z-index: 2;">
+                    <button class="search-tab active" onclick="switchSearchTab('vault')" id="tab-vault" style="background: rgba(15, 15, 19, 0.85); border: 1px solid rgba(189, 147, 249, 0.4); border-bottom: none; color: white; padding: 0.5rem 1.5rem; border-radius: 8px 8px 0 0; cursor: pointer; transition: all 0.2s; font-weight: 600;">Vault Search</button>
+                    <button class="search-tab" onclick="switchSearchTab('wiki')" id="tab-wiki" style="background: rgba(15, 15, 19, 0.4); border: 1px solid transparent; border-bottom: none; color: var(--text-muted); padding: 0.5rem 1.5rem; border-radius: 8px 8px 0 0; cursor: pointer; transition: all 0.2s;"><i class="fas fa-book"></i> Quick Define</button>
+                </div>
+                
+                <div class="terminal-search-box" id="vault-search-box" style="border-top-left-radius: 0;">
+                    <span class="prompt-symbol">&gt;</span>
+                    <form action="{{ url_for('main.materials') }}" method="GET" style="flex: 1; display: flex;">
+                        <input type="text" name="q" placeholder="search &quot;machine learning&quot;" class="terminal-input" id="heroSearchInput">
+                    </form>
+                    <span class="cursor-blink"></span>
+                </div>
+                
+                <div class="terminal-search-box" id="wiki-search-box" style="border-top-left-radius: 0; display: none;">
+                    <span class="prompt-symbol" style="color: #fff;"><i class="fab fa-wikipedia-w"></i></span>
+                    <div style="flex: 1; display: flex;">
+                        <input type="text" placeholder="define &quot;quantum computing&quot; + Enter" class="terminal-input" id="inline-wiki-input" onkeypress="if(event.key === 'Enter') searchInlineWiki()">
+                    </div>
+                </div>
 
-                <a href="{{ url_for('main.research') }}" class="mini-card card-research">
-                    <i class="fas fa-microscope"></i>
-                    <span>Research<br><small style="opacity:0.7">Hub</small></span>
-                </a>
+                <!-- Wiki Inline Results -->
+                <div id="inline-wiki-results" style="display: none; background: rgba(30,30,36,0.8); border-radius: 8px; padding: 1rem; border: 1px solid rgba(189,147,249,0.3); margin-top: 0.5rem; animation: slideIn 0.3s ease; backdrop-filter: blur(10px);">
+                </div>
+                
+                <div class="quick-tags-container">
+                    <span style="color:var(--text-muted); font-size: 0.85rem; margin-right: 10px;">Quick Tags:</span>
+                    <a href="{{ url_for('main.materials') }}?q=Computer%20Science" class="tag-item">Computer Science</a>
+                    <a href="{{ url_for('main.materials') }}?q=Mathematics" class="tag-item">Mathematics</a>
+                    <a href="{{ url_for('main.materials') }}?q=Physics" class="tag-item">Physics</a>
+                    <a href="{{ url_for('main.materials') }}?q=Biology" class="tag-item">Biology</a>
+                </div>
 
-                <a href="{{ url_for('main.events') }}" class="mini-card card-events">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Events<br><small style="opacity:0.7">{% if upcoming_event %}1 Upcoming{% else %}None{% endif
-                            %}</small></span>
-                </a>
+                <div class="hero-personal-stats">
+                    <div class="stat-item">
+                        <div class="stat-item-header">
+                            <i class="fas fa-fire" style="color: #ff9f43; filter: drop-shadow(0 0 5px rgba(255,159,67,0.5));"></i>
+                            <span>Quiz Streak</span>
+                        </div>
+                        <div class="stat-item-value">{{ current_user.quiz_streak if current_user.is_authenticated else 0 }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-header">
+                            <i class="fas fa-bookmark" style="color: #00d2ff; filter: drop-shadow(0 0 5px rgba(0,210,255,0.5));"></i>
+                            <span>Vault Bookmarks</span>
+                        </div>
+                        <div class="stat-item-value">{{ current_user.bookmarks|length if current_user.is_authenticated else 0 }}</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -80,5 +111,185 @@
             </div>
         </div>
     </div>
+
+
+
 </div>
+
+<!-- Floating Admin Updates Notification -->
+{% if recent_materials or recent_events %}
+<div class="floating-notif-stack" id="adminNotifs">
+    {% for m in recent_materials %}
+    <div class="floating-notif" data-id="mat_{{ m.id }}">
+        <div class="f-notif-icon"><i class="fas fa-file-pdf"></i></div>
+        <div class="f-notif-content">
+            <strong>New Material:</strong> {{ m.title }} <br>
+            <span style="font-size: 0.8rem; color: #aaa;">{{ m.subject }} • {{ m.date_uploaded.strftime('%b %d') }}</span>
+        </div>
+        <a href="{{ url_for('main.semester_view', semester=m.semester) }}" class="btn-outline btn-small" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">View</a>
+        <button class="f-notif-close" onclick="dismissNotif(this, 'mat_{{ m.id }}')"><i class="fas fa-times"></i></button>
+    </div>
+    {% endfor %}
+    {% for e in recent_events %}
+    <div class="floating-notif" data-id="evt_{{ e.id }}">
+        <div class="f-notif-icon" style="color:#ff79c6"><i class="fas fa-calendar-star"></i></div>
+        <div class="f-notif-content">
+            <strong>New Event:</strong> {{ e.name }} <br>
+            <span style="font-size: 0.8rem; color: #aaa;">{{ e.date }}</span>
+        </div>
+        <a href="{{ url_for('main.events') }}" class="btn-outline btn-small" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">View</a>
+        <button class="f-notif-close" onclick="dismissNotif(this, 'evt_{{ e.id }}')"><i class="fas fa-times"></i></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+    function dismissNotif(btn, id) {
+        const notif = btn.closest('.floating-notif');
+        notif.classList.remove('show');
+        setTimeout(() => {
+            notif.style.display = 'none';
+        }, 400);
+        // Save to local storage so it remains cleared
+        localStorage.setItem('dismissed_' + id, 'true');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Notification Load Stagger
+        const notifs = document.querySelectorAll('.floating-notif');
+        let delay = 1000;
+        notifs.forEach(notif => {
+            const id = notif.getAttribute('data-id');
+            if (!localStorage.getItem('dismissed_' + id)) {
+                setTimeout(() => {
+                    notif.classList.add('show');
+                }, delay);
+                delay += 400;
+            } else {
+                notif.style.display = 'none';
+            }
+        });
+        // 1. Initial Load Reveal Stagger
+        setTimeout(() => {
+            document.querySelectorAll('.reveal-stagger, .reveal').forEach(el => el.classList.add('active'));
+        }, 100);
+
+        // 2. Interactive 3D Hover Tracking for the Glass Stack
+        const visualCard = document.querySelector('.hero-visual');
+        const glassStack = document.querySelector('.glass-stack');
+
+        if (visualCard && glassStack) {
+            visualCard.addEventListener('mousemove', (e) => {
+                const rect = visualCard.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // Calculate rotation (max 15 degrees)
+                const rotateX = ((y - centerY) / centerY) * -15; 
+                const rotateY = ((x - centerX) / centerX) * 15;
+                
+                glassStack.style.animation = 'none';
+                glassStack.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px) scale(1.05)`;
+                glassStack.style.transition = 'transform 0.1s ease-out';
+            });
+
+            visualCard.addEventListener('mouseleave', () => {
+                // Reset slightly
+                glassStack.style.transition = 'transform 0.5s ease';
+                glassStack.style.transform = `rotateX(5deg) rotateY(-5deg) translateY(0) scale(1)`;
+                
+                // Re-apply idle animation after transition bounds
+                setTimeout(() => {
+                    glassStack.style.animation = 'float-rotate 8s ease-in-out infinite';
+                }, 500);
+            });
+        }
+    });
+
+    // Inline Wiki Search Logic
+    function searchInlineWiki() {
+        const input = document.getElementById('inline-wiki-input');
+        const resultsDiv = document.getElementById('inline-wiki-results');
+        const query = input.value.trim();
+
+        if (!query) return;
+
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = '<div style="color: var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Searching Wikipedia...</div>';
+
+        fetch(`/api/wiki?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                resultsDiv.innerHTML = '';
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div style="color: #ff79c6;">No Wikipedia entries found for this topic.</div>';
+                    return;
+                }
+                
+                // Display the primary result
+                const item = data[0]; 
+                resultsDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #fff;"><i class="fab fa-wikipedia-w"></i> ${item.title}</h3>
+                        <a href="${item.url}" target="_blank" class="btn-outline btn-small" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                    <p style="color: #a1a1aa; line-height: 1.5; margin: 0; font-size: 0.9rem;">${item.extract}</p>
+                `;
+            }).catch(err => {
+                resultsDiv.innerHTML = '<div style="color: #ff5555;">Error fetching Wikipedia data. Please try again later.</div>';
+            });
+    }
+
+    // Tab Switching Logic
+    function switchSearchTab(tabName) {
+        const vaultTab = document.getElementById('tab-vault');
+        const wikiTab = document.getElementById('tab-wiki');
+        const vaultBox = document.getElementById('vault-search-box');
+        const wikiBox = document.getElementById('wiki-search-box');
+        const wikiResults = document.getElementById('inline-wiki-results');
+
+        if (tabName === 'vault') {
+            // Activate Vault Tab
+            vaultTab.style.background = 'rgba(15, 15, 19, 0.85)';
+            vaultTab.style.border = '1px solid rgba(189, 147, 249, 0.4)';
+            vaultTab.style.borderBottom = 'none';
+            vaultTab.style.color = 'white';
+            vaultTab.style.fontWeight = '600';
+
+            wikiTab.style.background = 'rgba(15, 15, 19, 0.4)';
+            wikiTab.style.border = '1px solid transparent';
+            wikiTab.style.borderBottom = 'none';
+            wikiTab.style.color = 'var(--text-muted)';
+            wikiTab.style.fontWeight = 'normal';
+
+            vaultBox.style.display = 'flex';
+            wikiBox.style.display = 'none';
+            wikiResults.style.display = 'none';
+        } else {
+            // Activate Wiki Tab
+            wikiTab.style.background = 'rgba(15, 15, 19, 0.85)';
+            wikiTab.style.border = '1px solid rgba(189, 147, 249, 0.4)';
+            wikiTab.style.borderBottom = 'none';
+            wikiTab.style.color = 'white';
+            wikiTab.style.fontWeight = '600';
+
+            vaultTab.style.background = 'rgba(15, 15, 19, 0.4)';
+            vaultTab.style.border = '1px solid transparent';
+            vaultTab.style.borderBottom = 'none';
+            vaultTab.style.color = 'var(--text-muted)';
+            vaultTab.style.fontWeight = 'normal';
+
+            vaultBox.style.display = 'none';
+            wikiBox.style.display = 'flex';
+            if (document.getElementById('inline-wiki-results').innerHTML.trim() !== '') {
+                wikiResults.style.display = 'block';
+            }
+            document.getElementById('inline-wiki-input').focus();
+        }
+    }
+</script>
 {% endblock %}

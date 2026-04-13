@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container auth-container" style="max-width: 500px;">
+    <h2>Registration Successful! 🎉</h2>
+    <p class="subtitle" style="margin-bottom: 1rem;">Please save these Recovery Codes safely. You will need them if you ever forget your password.</p>
+    
+    <div class="alert" style="background: rgba(241, 250, 140, 0.1); border-color: #f1fa8c; color: #f1fa8c;">
+        <i class="fas fa-exclamation-triangle"></i> Warning: These codes will only be shown to you once!
+    </div>
+
+    <div class="codes-box">
+        {% for code in codes %}
+        <div class="code-item">{{ code }}</div>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('main.login') }}" class="btn-primary" style="display: block; text-align: center; text-decoration: none;">I have saved them. Proceed to Login</a>
+</div>
+
+<style>
+    .auth-container {
+        margin-top: 4rem;
+        padding: 2rem;
+        background: var(--surface);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    h2 { text-align: center; margin-bottom: 0.5rem; }
+    .subtitle { text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+    
+    .codes-box {
+        background: rgba(0,0,0,0.3);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+        margin: 1.5rem 0;
+        text-align: center;
+        font-family: monospace;
+        letter-spacing: 2px;
+    }
+    
+    .code-item {
+        margin: 0.5rem 0;
+        color: #50fa7b;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

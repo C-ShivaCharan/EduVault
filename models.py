@@ -25,15 +25,15 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(10), default='student')
     
-    # Security Fields
-    security_question = db.Column(db.String(100), nullable=True) # Question selected
-    security_answer_hash = db.Column(db.String(128), nullable=True) # Hashed answer
+    # Recovery Authentication
+    recovery_codes = db.Column(db.String(200), nullable=True) # Comma separated codes
 
     # Streak System
     quiz_streak = db.Column(db.Integer, default=0)
     last_quiz_date = db.Column(db.Date, nullable=True)
 
-    quiz_results = db.relationship('QuizResult', backref='user', lazy=True)
+    bookmarks = db.relationship('Bookmark', backref='user', lazy=True, cascade='all, delete-orphan')
+    quiz_results = db.relationship('QuizResult', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -41,12 +41,30 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def set_security_answer(self, answer):
-        # Normalize: strip whitespace, lowercase
-        self.security_answer_hash = generate_password_hash(answer.strip().lower())
+    def generate_recovery_codes(self):
+        import string, random
+        codes = []
+        for _ in range(3):
+            # Generate format XXX-XXX
+            part1 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+            part2 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+            codes.append(f"{part1}-{part2}")
+        self.recovery_codes = ','.join(codes)
+        return codes
+
+    def validate_and_consume_code(self, code):
+        if not self.recovery_codes:
+            return False
+            
+        current_codes = self.recovery_codes.split(',')
+        clean_input = code.strip().upper()
         
-    def check_security_answer(self, answer):
-        return check_password_hash(self.security_answer_hash, answer.strip().lower())
+        if clean_input in current_codes:
+            current_codes.remove(clean_input)
+            self.recovery_codes = ','.join(current_codes)
+            return True
+            
+        return False
 
 class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)

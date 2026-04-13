@@ -11,23 +11,36 @@
                 value="{{ query if query else '' }}" required>
             <button type="submit" class="btn-primary">Search</button>
         </form>
+        <div class="quick-topics">
+            <span>Explore:</span>
+            <a href="{{ url_for('main.journals', query='Data Science') }}" class="topic-tag">📊 Data Science</a>
+            <a href="{{ url_for('main.journals', query='Neuroscience') }}" class="topic-tag">🧠 Neuroscience</a>
+            <a href="{{ url_for('main.journals', query='Renewable Energy') }}" class="topic-tag">♻️ Renewable Energy</a>
+        </div>
     </div>
 
-    {% if query %}
-    <h3 class="results-heading">Results for "{{ query }}"</h3>
+    {% if is_default %}
+    <h3 class="results-heading" style="margin-bottom: 2rem;"><i class="fas fa-newspaper" style="color: #74b9ff;"></i> Latest Open Access Journals</h3>
+    {% elif query %}
+    <h3 class="results-heading" style="margin-bottom: 2rem;">Results for "{{ query }}"</h3>
+    {% endif %}
     <div class="results-grid">
         {% for paper in results %}
         <div class="result-card">
             <h3>{{ paper.title }}</h3>
             <p class="journal-name"><strong>Journal:</strong> {{ paper.journal }}</p>
             <p class="abstract">{{ paper.abstract[:200] }}...</p>
-            <a href="{{ paper.link }}" target="_blank" class="btn-read">Read Full Article</a>
+            <div class="actions" style="display: flex; gap: 1.5rem; align-items: center; margin-top: 1rem;">
+                <a href="{{ paper.link }}" target="_blank" class="btn-read">Read Full Article</a>
+                {% if paper.pdf_link %}
+                <a href="{{ paper.pdf_link }}" target="_blank" class="btn-download" style="color: #f1fa8c; font-weight: bold; text-decoration: none; border: 1px solid #f1fa8c; padding: 0.3rem 0.6rem; border-radius: 5px; font-size: 0.85rem;" onmouseover="this.style.background='rgba(241, 250, 140, 0.2)'" onmouseout="this.style.background='transparent'">PDF ⬇</a>
+                {% endif %}
+            </div>
         </div>
         {% else %}
         <p class="no-data">No articles found. Try a different keyword.</p>
         {% endfor %}
     </div>
-    {% endif %}
 </div>
 
 <style>

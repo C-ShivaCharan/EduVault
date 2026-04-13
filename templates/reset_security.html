@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container auth-container">
-    <h2>Security Check</h2>
-    <p class="subtitle">Answer your security question to reset your password.</p>
+    <h2>Account Verification</h2>
+    <p class="subtitle">Enter one of your Recovery Codes to reset your password.</p>
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -17,14 +17,9 @@
 
     <form method="POST" action="{{ url_for('main.reset_security', user_id=user_id) }}" class="auth-form">
         <div class="form-group">
-            <label>Security Question</label>
-            <div class="question-box">{{ question }}</div>
-        </div>
-
-        <div class="form-group">
-            <label for="security_answer">Your Answer</label>
-            <input type="text" id="security_answer" name="security_answer" placeholder="Enter your secret answer"
-                required>
+            <label for="recovery_code">Recovery Code</label>
+            <input type="text" id="recovery_code" name="recovery_code" placeholder="e.g. A2B-C3D"
+                required style="text-transform: uppercase;">
         </div>
 
         <div class="form-group">
@@ -97,15 +92,6 @@
     .form-group label {
         color: var(--text-muted);
         font-size: 0.9rem;
-    }
-
-    .question-box {
-        padding: 1rem;
-        background: rgba(108, 92, 231, 0.1);
-        border: 1px solid var(--primary-color);
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
     }
 
     .form-group input {

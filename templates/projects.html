@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="subpage-hero hero-bg-research" style="background: linear-gradient(135deg, #1e1e24 0%, #29323c 100%);">
+        <div class="subpage-hero-content">
+            <h2><i class="fab fa-github"></i> Open-Source Projects</h2>
+            <p class="subtitle" style="color: white;">Discover real-world GitHub repositories to study, practice, and contribute to</p>
+        </div>
+    </div>
+
+    <div class="search-section" style="margin-bottom: 3rem;">
+        <form method="GET" action="{{ url_for('main.projects') }}" class="search-form" style="display: flex; gap: 1rem; max-width: 600px; margin: 0 auto;">
+            <input type="text" name="query" placeholder="e.g., React Dashboard, Machine Learning..."
+                value="{{ query if query else '' }}" required style="flex: 1; padding: 1rem; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); background: var(--surface); color: white;">
+            <button type="submit" class="btn-primary">Search Repos</button>
+        </form>
+        <div class="quick-topics">
+            <span>Explore:</span>
+            <a href="{{ url_for('main.projects', query='First Timers Only') }}" class="topic-tag">🌟 Good First Issues</a>
+            <a href="{{ url_for('main.projects', query='Python Game') }}" class="topic-tag">🐍 Python Games</a>
+            <a href="{{ url_for('main.projects', query='Data Visualization') }}" class="topic-tag">📊 Data Viz</a>
+        </div>
+    </div>
+
+    {% if is_default %}
+    <h3 class="results-heading" style="margin-bottom: 2rem;"><i class="fab fa-github" style="color: #ffffff;"></i> Trending Beginner Projects</h3>
+    {% elif query %}
+    <h3 class="results-heading" style="margin-bottom: 2rem;">Results for "{{ query }}"</h3>
+    {% endif %}
+    
+    <div class="results-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        {% for project in results %}
+        <div class="project-card">
+            <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #fff; word-break: break-all;">{{ project.title }}</h3>
+            
+            <div class="project-stats" style="display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <span class="stat-badge"><i class="fas fa-code"></i> {{ project.language or 'Mixed' }}</span>
+                <span class="stat-badge"><i class="fas fa-star" style="color: #f1c40f;"></i> {{ project.stars }}</span>
+                <span class="stat-badge"><i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i> {{ project.issues }} issues</span>
+            </div>
+            
+            <p class="abstract" style="color: #a1a1aa; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; flex-grow: 1;">
+                {{ (project.description[:150] ~ '...') if project.description else 'No description available for this repository.' }}
+            </p>
+            
+            <div class="actions" style="margin-top: auto;">
+                <a href="{{ project.url }}" target="_blank" class="btn-read" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: white; background: rgba(255, 255, 255, 0.1); text-decoration: none; font-weight: 600; padding: 0.6rem 1rem; border-radius: 6px; transition: all 0.2s; width: 100%; border: 1px solid rgba(255,255,255,0.2);" onmouseover="this.style.background='white'; this.style.color='black';" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='white';">
+                    <i class="fab fa-github"></i> View Repository
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <p class="no-data">No projects found. Try a different query.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .project-card {
+        background: var(--surface);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-badge {
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: white;
+    }
+</style>
+{% endblock %}

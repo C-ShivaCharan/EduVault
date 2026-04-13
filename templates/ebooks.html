@@ -11,10 +11,19 @@
                 value="{{ query if query else '' }}" required>
             <button type="submit" class="btn-primary">Search Books</button>
         </form>
+        <div class="quick-topics">
+            <span>Popular:</span>
+            <a href="{{ url_for('main.ebooks', query='Python Programming') }}" class="topic-tag">🐍 Python</a>
+            <a href="{{ url_for('main.ebooks', query='Calculus') }}" class="topic-tag">📐 Calculus</a>
+            <a href="{{ url_for('main.ebooks', query='World History') }}" class="topic-tag">🌍 History</a>
+        </div>
     </div>
 
-    {% if query %}
-    <h3 class="results-heading">Results for "{{ query }}"</h3>
+    {% if is_default %}
+    <h3 class="results-heading" style="margin-bottom: 2rem;"><i class="fas fa-book-open" style="color: #ffb8b8;"></i> Trending Books Right Now</h3>
+    {% elif query %}
+    <h3 class="results-heading" style="margin-bottom: 2rem;">Results for "{{ query }}"</h3>
+    {% endif %}
     <div class="books-grid">
         {% for book in results %}
         <div class="book-card">
@@ -38,7 +47,6 @@
         <p class="no-data">No books found.</p>
         {% endfor %}
     </div>
-    {% endif %}
 </div>
 
 <style>

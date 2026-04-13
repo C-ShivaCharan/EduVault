@@ -27,8 +27,8 @@ def create_app():
         # Import models and create tables
         db.create_all()
         
-        # Check if DB is initialized (optional check)
-        # Admin creation moved to external script/command to avoid startup errors
+        # Check if DB is initialized 
+       
 
 
     # Register blueprints
