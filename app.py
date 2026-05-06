@@ -1,10 +1,15 @@
 from flask import Flask
 from database import db
 import os
+from dotenv import load_dotenv
+
+# Force load_dotenv to look in the exact directory of app.py
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'dev_secret_key' # Change for production
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key') # Change for production
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eduvault.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
@@ -40,4 +45,4 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     # Host='0.0.0.0' allows access from external connections (tunnels/LAN)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)
