@@ -33,7 +33,17 @@ def create_app():
         db.create_all()
         
         # Check if DB is initialized 
-       
+        admin_user = User.query.filter_by(role='admin').first()
+        if not admin_user:
+            admin = User(
+                admission_number='admin',
+                name='Admin User',
+                role='admin'
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+            print("Database seeded: Default admin user created.")
 
 
     # Register blueprints
