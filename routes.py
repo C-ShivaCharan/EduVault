@@ -40,9 +40,6 @@ def index():
                            recent_materials=recent_materials,
                            recent_events=recent_events)
 
-@main_bp.route('/sw.js')
-def service_worker():
-    return send_from_directory(os.path.join(current_app.root_path, 'static'), 'sw.js', mimetype='application/javascript')
 
 @main_bp.route('/register', methods=['GET', 'POST'])
 def register():
